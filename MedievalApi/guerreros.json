@@ -1,17 +1,1 @@
-{
-    "arreglo":
-    [
-        {
-            "id": 15,
-            "Titulo":"Guerrero Hacha",
-            "Descripcion":"Un wey qe usa un hachonzon",
-            "imagen": "1.jpg"
-        },
-        {
-            "id": 2,
-            "Titulo":"Guerrero Hacha",
-            "Descripcion":"Enano que usa un hacha enciam de un jabalinsis",
-            "imagen": "2.jpg"
-        }
-    ]
-}
+{"arreglo":[{"id":15,"titulo":"Guerrero Hacha","descripcion":"Un wey qe usa un hachonzon","imagen":"1.jpg"},{"id":2,"ditulo":"Guerrero Hacha","descripcion":"Enano que usa un hacha enciam de un jabalinsis","imagen":"2.jpg"},{"id":16,"titulo":"assadsd","descripcion":"adsadds","imagen":"16.jpg"},{"id":17,"titulo":"dsasdasd","descripcion":"adasdad","imagen":"17.jpg"},{"id":18,"titulo":"sasa","descripcion":"assasa","imagen":"18.png"}]}

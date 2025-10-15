@@ -1,40 +1,35 @@
 const http = require("node:http");
 const fs = require("node:fs");
-
 const puerto = 3000;
 
-var archivo = JSON.parse(fs.readFileSync("./guerreros.json").toString());
-var id_actual =0;
+var archivo = JSON.parse(fs.readFileSync("./guerreros.json").toString())
+var id_actual = 0
 
-for(i=0; i<archivo.arreglo.length; i++)
-{
-    if(archivo.arreglo[i]> id_actual)
-    {
-        id_actual= archivo.arreglo[i].id;
+for(i=0; i<archivo.arreglo.length; i++){
+    if(archivo.arreglo[i].id > id_actual){
+        id_actual= archivo.arreglo[i].id
     }
 }
 id_actual++;
-console.log(id_actual);
 
 const server = http.createServer((request, response) => {
-    response.setHeader("Access-Control-Allow-Origin","*");
-    
+    response.setHeader("Access-Control-Allow-Origin", "*")
+    response.setHeader("Access-Control-Allow-Methods","GET, POST, PUT, DELETE")
     switch(request.method){
         case "GET":
-            if(request.url == "/")
-                {   
+            if(request.url == "/"){   
                     response.statusCode = 200;
                     response.setHeader("Content-Type", "application/json");
-                    response.end(JSON.stringify(archivo));
-                    return 0;
+                    response.end(JSON.stringify(archivo))
+                    return 0
                 }
             
                 //console.log(request.url);
-                fs.readFile("./img"+request.url, (err, file)=>{
-                    if(err)
-                    {
-                        response.statusCode = 404;
-                        response.setHeader("Content-Type", "application/json");
+                fs.readFile("./img" + request.url, (err, file)=>{
+                    if(err){
+                        response.statusCode = 404
+                        response.setHeader("Content-Type", "application/json")
+
                         const objeto_error = {
                             "mensaje": "esa imagen no la tengo"
                         }
@@ -43,32 +38,26 @@ const server = http.createServer((request, response) => {
                     }
                     response.statusCode = 200;
                     response.end(file);
-                });                      
+                })                 
         break;
-        case "POST":
-            var informacion = "";
 
+        case "POST":
+            var informacion = ""
             request.on("data", info =>{
                 informacion += info.toString();
-            });
+            })
 
             request.on("end", ()=>{
-                const objeto_tarjeta = JSON.parse(informacion);
+                const objeto_tarjeta = JSON.parse(informacion)
+                const imagen_base64 = objeto_tarjeta.imagen.split(',')[1]
+                const imagen_buffer = Buffer.from(imagen_base64, "base64")
+                const nombre_cortado = objeto_tarjeta.nombre.split(".")
+                const formato_imagen = nombre_cortado[nombre_cortado.length-1]
 
-                const imagen_base64 = objeto_tarjeta.imagen.split(',')[1];
-
-                const imagen_buffer = Buffer.from(objeto_tarjeta.imagen, "base64");
-
-                const nombre_cortado = objeto_tarjeta.nombre.split('.');
-
-                const formato_imagen = nombre_cortado[nombre_cortado.length-1];
-
-                console.log(formato_imagen);
-
-                fs.writeFile("./img/"+id_actual+"."+formato_imagen, imagen_buffer, (err) => {
+                fs.writeFile("./img/" + id_actual+ "." + formato_imagen, imagen_buffer, (err) => {
                     if(err)
                     {
-                        console.log(err);
+                        console.log("Error",err);
                     }
                     else{
 
@@ -80,34 +69,73 @@ const server = http.createServer((request, response) => {
                             "id": id_actual,
                             "titulo":objeto_tarjeta.titulo,
                             "descripcion": objeto_tarjeta.descripcion,
-                            "imagen": id_actual+"."+formato_imagen
+                            "imagen": id_actual + "." + formato_imagen
                         }
 
                         archivo.arreglo.push(objeto_tarjeta_a_guardar);
 
-                        fs.writeFile("./guerreros.json", JSON.stringify(archivo), (err)=>{
-                            if (err)
-                            {
-
+                        fs.writeFile("./guerreros.json", JSON.stringify(archivo), err =>{
+                            if (err){
+                                console.log("ja ja, fallaste")
                             }
-                            else
-                            {
-                                id_actual++;
+                            else{
+                                id_actual++
 
-                                response.statusCode = 200,
+                                response.statusCode = 200
                                 response.setHeader("Content-Type", "application/json");
                                 response.end(JSON.stringify(objeto_respuesta));
                             }
                         })
 
                     }
-                });
+                })
+            })
+            break;
+        case "PUT":
+            var informacion = ""
+            request.on("data", info =>{
+                informacion += info.toString()
+            })
+            request.on("end", () => {
+                const objeto_item_editado = JSON.parse(informacion); 
 
-                //archivo.
-            });
+                for(i=0; i < archivo.arreglo.length; i++)
+                {
+                    if(archivo.arreglo[i].id == objeto_item_editado.id){
+                        const imagen_base64 = objeto_item_editado.imagen.split(',')[1]
+                        const imagen_buffer = Buffer.from(imagen_base64, "base64")
+                        const nombre_cortado = objeto_item_editado.nombre.split(".")
+
+                        const formato_imagen = nombre_cortado[nombre_cortado.length-1]
+
+                        fs.unlink("./img/" + archivo.arreglo[i].imagen, (err) =>{
+                            if(err){
+                                console.log("Error", err);
+                            }
+                            else{
+                                fs.writeFile("./" + objeto_item_editado.id + "." + formato_imagen, imagen_buffer, (err) => {
+                                    if(err){
+                                        console.log("Error", err);
+                                    }
+                                    else{
+                                        console.log("imagen editada");
+                                    }
+                                })
+                            }
+                        })
+                    }
+                }
+            })
         break;
+        case "DELETE":
+        break;
+        case "OPTIONS":
+            response.writeHead(204);
+            response.end();
+        break
     }
 });
+
 server.listen(puerto,()=>{
     console.log("Server a la escucha en el puerto http://localhost:"+puerto)
 })
